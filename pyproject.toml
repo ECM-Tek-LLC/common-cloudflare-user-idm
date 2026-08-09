@@ -1,0 +1,91 @@
+[project]
+name = "common-cloudflare-user-idm"
+version = "0.1.0"
+description = "Reusable Cloudflare Zero Trust (Access) user identification for FastAPI applications"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+authors = [{ name = "ECM-Tek LLC" }]
+keywords = ["cloudflare", "zero-trust", "cloudflare-access", "fastapi", "authentication"]
+classifiers = [
+    "Framework :: FastAPI",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Typing :: Typed",
+]
+dependencies = [
+    "fastapi>=0.110",
+    "httpx>=0.27",
+    "pydantic>=2.6",
+    "pydantic-settings>=2.3",
+    "pyjwt[crypto]>=2.8",
+]
+
+[project.optional-dependencies]
+# Helpers for consuming apps that want to test their own protected routes.
+# Everything in cf_user_idm.testing needs these.
+testing = ["cryptography>=42.0"]
+
+[project.urls]
+Homepage = "https://github.com/ECM-Tek-LLC/common-cloudflare-user-idm"
+Documentation = "https://github.com/ECM-Tek-LLC/common-cloudflare-user-idm/blob/main/docs/INTEGRATION.md"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.1",
+    "pytest-asyncio>=0.23",
+    "pytest-cov>=5.0",
+    "respx>=0.21",
+    "ruff>=0.6",
+    "uvicorn>=0.29",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cf_user_idm"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+# Ruff reformats Python inside Markdown fences, which reflows the deliberately aligned
+# annotations in the docs. Documentation is prose; leave it alone.
+extend-exclude = ["*.md"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+    "C4",  # comprehensions
+    "SIM", # simplify
+    "RUF",
+]
+ignore = [
+    "B008", # FastAPI's Depends() in defaults is the documented idiom
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    "error",
+    # Starlette 1.6 pushes TestClient users towards httpx2, but respx -- which we use to
+    # stand in for Cloudflare's certs and identity endpoints -- still targets httpx 0.x.
+    "ignore::starlette.exceptions.StarletteDeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["src/cf_user_idm"]
