@@ -77,8 +77,11 @@ class CfAccessRuntime:
 
 def get_runtime(request: Request) -> CfAccessRuntime:
     """Fetch the runtime for the application handling ``request``."""
+    # app.state is an untyped attribute bag, so this is an isinstance check rather than a
+    # None check: a wrong type here means something else claimed the attribute, and that
+    # deserves the same clear message as never having installed the framework at all.
     runtime = getattr(request.app.state, APP_STATE_ATTR, None)
-    if runtime is None:
+    if not isinstance(runtime, CfAccessRuntime):
         raise ConfigurationError(
             "Cloudflare Access identification is not installed on this application. Call "
             "install_cf_access(app) during startup before using its dependencies."
