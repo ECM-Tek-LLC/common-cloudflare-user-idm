@@ -56,7 +56,9 @@ middleware, exception handlers, background task setup.
 
 async def _resolve(request: Request) -> Principal:
     """Identify the caller, at most once per request."""
-    cached = getattr(request.state, REQUEST_STATE_ATTR, None)
+    # request.state is an untyped attribute bag; annotate what we put there so the cached
+    # value stays typed on the way back out.
+    cached: Principal | None = getattr(request.state, REQUEST_STATE_ATTR, None)
     if cached is not None:
         return cached
 
